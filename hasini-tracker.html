@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Hasini's Journal</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #F7F4F0;
+    color: #1a1a1a;
+    min-height: 100vh;
+    padding: 0 0 80px 0;
+  }
+
+  header {
+    background: #fff;
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid #ece8e3;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: -0.3px;
+  }
+
+  header p {
+    font-size: 13px;
+    color: #888;
+    margin-top: 2px;
+  }
+
+  .tab-bar {
+    display: flex;
+    background: #fff;
+    border-bottom: 1px solid #ece8e3;
+    position: sticky;
+    top: 65px;
+    z-index: 9;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: #999;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    color: #7C6FCD;
+    border-bottom-color: #7C6FCD;
+  }
+
+  .screen { display: none; padding: 20px; }
+  .screen.active { display: block; }
+
+  /* LOG SCREEN */
+  .question-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+  }
+
+  .section {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .chip {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1.5px solid #e0dbd4;
+    background: #F7F4F0;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .chip.selected {
+    background: #7C6FCD;
+    border-color: #7C6FCD;
+    color: #fff;
+  }
+
+  .intensity-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .intensity-btn {
+    flex: 1;
+    padding: 12px 4px;
+    border-radius: 10px;
+    border: 1.5px solid #e0dbd4;
+    background: #F7F4F0;
+    font-size: 13px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .intensity-btn .num {
+    font-size: 18px;
+    font-weight: 700;
+    display: block;
+  }
+
+  .intensity-btn .label {
+    font-size: 10px;
+    color: #999;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .intensity-btn.selected-1 { background: #FFF3CD; border-color: #f0c040; }
+  .intensity-btn.selected-2 { background: #FFE0B2; border-color: #f0904a; }
+  .intensity-btn.selected-3 { background: #FFCDD2; border-color: #e05555; }
+
+  textarea {
+    width: 100%;
+    border: 1.5px solid #e0dbd4;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #F7F4F0;
+    resize: none;
+    outline: none;
+    color: #1a1a1a;
+    min-height: 80px;
+    margin-top: 4px;
+  }
+
+  textarea:focus {
+    border-color: #7C6FCD;
+    background: #fff;
+  }
+
+  .save-btn {
+    width: 100%;
+    padding: 16px;
+    background: #7C6FCD;
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s;
+  }
+
+  .save-btn:active { opacity: 0.85; }
+
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #1a1a1a;
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: transform 0.3s ease;
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* HISTORY SCREEN */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #bbb;
+  }
+
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 15px; }
+
+  .entry-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .entry-date {
+    font-size: 13px;
+    color: #888;
+  }
+
+  .entry-intensity {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .int-mild { background: #FFF3CD; color: #9a7000; }
+  .int-moderate { background: #FFE0B2; color: #9a4a00; }
+  .int-severe { background: #FFCDD2; color: #9a0000; }
+
+  .entry-triggers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .entry-tag {
+    font-size: 12px;
+    background: #F7F4F0;
+    padding: 4px 10px;
+    border-radius: 20px;
+    color: #555;
+  }
+
+  .entry-note {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.5;
+    border-top: 1px solid #f0ece8;
+    padding-top: 8px;
+    margin-top: 4px;
+  }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 0 0 8px;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .clear-btn {
+    display: block;
+    margin: 16px auto 0;
+    background: none;
+    border: 1.5px solid #e0dbd4;
+    color: #999;
+    font-size: 13px;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+
+  .date-group-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 16px 0 8px;
+  }
+
+  .duration-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Hasini's Journal 🌸</h1>
+  <p>Private. Just for you.</p>
+</header>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="showTab('log')">Log Episode</div>
+  <div class="tab" onclick="showTab('history')">History</div>
+</div>
+
+<div class="screen active" id="log">
+
+  <div class="section">
+    <div class="question-label">How intense was it?</div>
+    <div class="intensity-row">
+      <div class="intensity-btn" onclick="selectIntensity(1, this)">
+        <span class="num">1</span>
+        <span class="label">Mild</span>
+      </div>
+      <div class="intensity-btn" onclick="selectIntensity(2, this)">
+        <span class="num">2</span>
+        <span class="label">Moderate</span>
+      </div>
+      <div class="intensity-btn" onclick="selectIntensity(3, this)">
+        <span class="num">3</span>
+        <span class="label">Severe</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="question-label">How long did it last?</div>
+    <div class="chips duration-chips" id="duration-chips">
+      <div class="chip" onclick="toggleChip(this, 'duration')">Under 5 min</div>
+      <div class="chip" onclick="toggleChip(this, 'duration')">5–15 min</div>
+      <div class="chip" onclick="toggleChip(this, 'duration')">15–30 min</div>
+      <div class="chip" onclick="toggleChip(this, 'duration')">Over 30 min</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="question-label">What were you feeling? (pick all that apply)</div>
+    <div class="chips" id="feeling-chips">
+      <div class="chip" onclick="toggleChip(this, 'feeling')">Heart racing</div>
+      <div class="chip" onclick="toggleChip(this, 'feeling')">Dizziness</div>
+      <div class="chip" onclick="toggleChip(this, 'feeling')">Breathless</div>
+      <div class="chip" onclick="toggleChip(this, 'feeling')">Shaking</div>
+      <div class="chip" onclick="toggleChip(this, 'feeling')">Chest tight</div>
+      <div class="chip" onclick="toggleChip(this, 'feeling')">Nausea</div>
+      <div class="chip" onclick="toggleChip(this, 'feeling')">Fear of something bad</div>
+      <div class="chip" onclick="toggleChip(this, 'feeling')">Felt unreal</div>
+      <div class="chip" onclick="toggleChip(this, 'feeling')">Overwhelmed</div>
+      <div class="chip" onclick="toggleChip(this, 'feeling')">Crying</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="question-label">What triggered it? (optional)</div>
+    <div class="chips" id="trigger-chips">
+      <div class="chip" onclick="toggleChip(this, 'trigger')">Nothing obvious</div>
+      <div class="chip" onclick="toggleChip(this, 'trigger')">Woke up this way</div>
+      <div class="chip" onclick="toggleChip(this, 'trigger')">Stress / thinking too much</div>
+      <div class="chip" onclick="toggleChip(this, 'trigger')">Argument / conflict</div>
+      <div class="chip" onclick="toggleChip(this, 'trigger')">Alone</div>
+      <div class="chip" onclick="toggleChip(this, 'trigger')">Crowd / outside</div>
+      <div class="chip" onclick="toggleChip(this, 'trigger')">Tired / not slept</div>
+      <div class="chip" onclick="toggleChip(this, 'trigger')">Skipped meal</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="question-label">Anything else? (optional)</div>
+    <textarea id="note" placeholder="Write whatever you want. Nobody else sees this." rows="3"></textarea>
+  </div>
+
+  <button class="save-btn" onclick="saveEntry()">Save Episode</button>
+</div>
+
+<div class="screen" id="history">
+  <div id="history-list"></div>
+</div>
+
+<div class="toast" id="toast">✓ Saved</div>
+
+<script>
+  let intensity = 0;
+  let selections = { duration: [], feeling: [], trigger: [] };
+
+  function showTab(tab) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', (tab === 'log' && i === 0) || (tab === 'history' && i === 1));
+    });
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(tab).classList.add('active');
+    if (tab === 'history') renderHistory();
+  }
+
+  function selectIntensity(level, el) {
+    intensity = level;
+    document.querySelectorAll('.intensity-btn').forEach(b => {
+      b.classList.remove('selected-1', 'selected-2', 'selected-3');
+    });
+    el.classList.add('selected-' + level);
+  }
+
+  function toggleChip(el, group) {
+    const val = el.textContent.trim();
+    if (group === 'duration') {
+      // single select for duration
+      document.querySelectorAll('#duration-chips .chip').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selections.duration = [val];
+    } else {
+      el.classList.toggle('selected');
+      if (el.classList.contains('selected')) {
+        if (!selections[group].includes(val)) selections[group].push(val);
+      } else {
+        selections[group] = selections[group].filter(v => v !== val);
+      }
+    }
+  }
+
+  function saveEntry() {
+    if (intensity === 0) {
+      alert('Please select how intense it was.');
+      return;
+    }
+
+    const entry = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      intensity,
+      duration: selections.duration[0] || null,
+      feelings: [...selections.feeling],
+      triggers: [...selections.trigger],
+      note: document.getElementById('note').value.trim()
+    };
+
+    const entries = getEntries();
+    entries.unshift(entry);
+    localStorage.setItem('hasini_entries', JSON.stringify(entries));
+
+    // reset
+    intensity = 0;
+    selections = { duration: [], feeling: [], trigger: [] };
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.intensity-btn').forEach(b => {
+      b.classList.remove('selected-1', 'selected-2', 'selected-3');
+    });
+    document.getElementById('note').value = '';
+
+    showToast('Saved ✓');
+  }
+
+  function getEntries() {
+    try {
+      return JSON.parse(localStorage.getItem('hasini_entries') || '[]');
+    } catch { return []; }
+  }
+
+  function deleteEntry(id) {
+    const entries = getEntries().filter(e => e.id !== id);
+    localStorage.setItem('hasini_entries', JSON.stringify(entries));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const entries = getEntries();
+    const container = document.getElementById('history-list');
+
+    if (entries.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="icon">🌸</div><p>No episodes logged yet.</p></div>`;
+      return;
+    }
+
+    const intLabels = { 1: 'Mild', 2: 'Moderate', 3: 'Severe' };
+    const intClasses = { 1: 'int-mild', 2: 'int-moderate', 3: 'int-severe' };
+
+    // group by date
+    const groups = {};
+    entries.forEach(e => {
+      const d = new Date(e.date);
+      const key = d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(e);
+    });
+
+    let html = '';
+    Object.entries(groups).forEach(([date, group]) => {
+      html += `<div class="date-group-label">${date}</div>`;
+      group.forEach(e => {
+        const d = new Date(e.date);
+        const time = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        const tags = [...e.feelings, ...e.triggers].map(t => `<span class="entry-tag">${t}</span>`).join('');
+        const durTag = e.duration ? `<span class="entry-tag">⏱ ${e.duration}</span>` : '';
+        html += `
+          <div class="entry-card">
+            <div class="entry-header">
+              <div class="entry-date">${time}</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="entry-intensity ${intClasses[e.intensity]}">${intLabels[e.intensity]}</span>
+                <button class="delete-btn" onclick="deleteEntry(${e.id})">×</button>
+              </div>
+            </div>
+            ${tags || durTag ? `<div class="entry-triggers">${durTag}${tags}</div>` : ''}
+            ${e.note ? `<div class="entry-note">${e.note}</div>` : ''}
+          </div>`;
+      });
+    });
+
+    container.innerHTML = html;
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+</script>
+</body>
+</html>
